@@ -23,10 +23,11 @@ using namespace hiddini;
 typedef double FloatT;
 
 PYBIND11_MODULE(hiddini, m)
-{    
+{
     m.doc() = "Magical Markov models";
-    
+
     typedef ObservationsRaw<FloatT> ObservationsRaw;
+
     typedef HMM<ObservationsRaw> HMMRaw;
     py::class_<HMMRaw>(m, "HMMRaw")
         .def("__init__", [](HMMRaw &self, const HMMRaw::ProbMatrix& in_transProbs, const HMMRaw::ProbColumn& in_initProbs) {new (&self) HMMRaw(ObservationsRaw(in_transProbs.rows()), in_transProbs, in_initProbs);}, "transition_probs"_a, "initialisation_probs"_a = HMMRaw::ProbColumn())
@@ -39,6 +40,9 @@ PYBIND11_MODULE(hiddini, m)
         .def("decodePV_with_lattice", &HMMRaw::decodePVWithLattice, "likelikhoods_sequence"_a)
         .def("decodeMAP_with_medianOPC", &HMMRaw::decodeMAPWithMedianOPC, "likelikhoods_sequence"_a)
         .def("decode_with_PPD", &HMMRaw::decodeWithPPD, "likelikhoods_sequence"_a, "output_decoder"_a="MAP", "additional_decoder"_a="PMAP")
+        .def("decodeMAP_with_entropy", &HMMRaw::decodeMAPWithEntropy, "observations_sequence"_a) //JZ
+        .def("decodeMAP_with_sequential_entropy", &HMMRaw::decodeMAPWithSequentialEntropy, "observations_sequence"_a) //JZ
+        .def("decodeMAP_with_framewise_entropy", &HMMRaw::decodeMAPWithFramewiseEntropy, "observations_sequence"_a) //JZ
     ;
 
     typedef ObservationsDiscrete<FloatT> ObservationsDiscrete;
@@ -61,11 +65,14 @@ PYBIND11_MODULE(hiddini, m)
         .def("decodePV_with_lattice", &HMMDiscrete::decodePVWithLattice, "observations_sequence"_a)
         .def("decodeMAP_with_medianOPC", &HMMDiscrete::decodeMAPWithMedianOPC, "observations_sequence"_a)
         .def("decode_with_PPD", &HMMDiscrete::decodeWithPPD, "observations_sequence"_a, "output_decoder"_a="MAP", "additional_decoder"_a="PMAP")
+        .def("decodeMAP_with_entropy", &HMMDiscrete::decodeMAPWithEntropy, "observations_sequence"_a) //JZ
+        .def("decodeMAP_with_sequential_entropy", &HMMDiscrete::decodeMAPWithSequentialEntropy, "observations_sequence"_a) //JZ
+        .def("decodeMAP_with_framewise_entropy", &HMMDiscrete::decodeMAPWithFramewiseEntropy, "observations_sequence"_a) //JZ
         .def("train", (void (HMMDiscrete::*)(const HMMDiscrete::ObsSeqType&, const Eigen::Index, const FloatT, const bool)) &HMMDiscrete::train, "observations_sequence"_a, "max_iterations"_a, "tolerance"_a, "verbose"_a=true)
         .def("train", (void (HMMDiscrete::*)(const std::vector<HMMDiscrete::ObsSeqType>&, const Eigen::Index, const FloatT, const bool)) &HMMDiscrete::train, "observations_sequence_list"_a, "max_iterations"_a, "tolerance"_a, "verbose"_a=true)
         .def("generate", &HMMDiscrete::generate, "sequence_length"_a)
     ;
-    
+
     typedef ObservationsGaussian<FloatT> ObservationsGaussian;
     py::class_<ObservationsGaussian>(m, "ObservationsGaussian")
         .def(py::init<const Eigen::Index, const Eigen::Index>(), "num_states"_a, "num_dimensions"_a)
@@ -90,7 +97,7 @@ PYBIND11_MODULE(hiddini, m)
         .def("train", (void (HMMGaussian::*)(const std::vector<HMMGaussian::ObsSeqType>&, const Eigen::Index, const FloatT, const bool)) &HMMGaussian::train, "observations_sequence_list"_a, "max_iterations"_a, "tolerance"_a, "verbose"_a=true)
         .def("generate", &HMMGaussian::generate, "sequence_length"_a)
     ;
-    
+
     typedef ObservationsGMM<FloatT> ObservationsGMM;
     py::class_<ObservationsGMM>(m, "ObservationsGMM")
         .def(py::init<const Eigen::Index, const Eigen::Index, const Eigen::Index>(), "num_states"_a, "num_dimensions"_a, "num_components"_a)
@@ -115,7 +122,7 @@ PYBIND11_MODULE(hiddini, m)
         .def("train", (void (HMMGMM::*)(const std::vector<HMMGMM::ObsSeqType>&, const Eigen::Index, const FloatT, const bool)) &HMMGMM::train, "observations_sequence_list"_a, "max_iterations"_a, "tolerance"_a, "verbose"_a=true)
         .def("generate", &HMMGMM::generate, "sequence_length"_a)
     ;
-    
+
     typedef ObservationsTemplateCosSim<FloatT> ObservationsTemplateCosSim;
     py::class_<ObservationsTemplateCosSim>(m, "ObservationsTemplateCosSim")
         .def(py::init<const ObservationsTemplateCosSim::ProbMatrix&>(), "templates"_a)
@@ -135,7 +142,7 @@ PYBIND11_MODULE(hiddini, m)
         .def("decodeMAP_with_medianOPC", &HMMTemplateCosSim::decodeMAPWithMedianOPC, "observations_sequence"_a)
         .def("decode_with_PPD", &HMMTemplateCosSim::decodeWithPPD, "observations_sequence"_a, "output_decoder"_a="MAP", "additional_decoder"_a="PMAP")
     ;
-    
+
 
 #ifdef VERSION_INFO
     m.attr("__version__") = py::str(VERSION_INFO);
