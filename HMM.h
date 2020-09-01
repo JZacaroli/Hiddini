@@ -518,8 +518,6 @@ namespace hiddini
     */
     const std::tuple<StateSeqType, ProbType, ProbType> viterbiWithSequenceEntropy(const ProbMatrix& in_obsLikelihoods, const ProbMatrix& in_transProbs, const ProbColumn& in_initProbs) const
     {
-      // std::cout << std::fixed;
-      // std::cout.precision(3);
       /*
       in_obsLikelihoods - (m_nStates x numFrames) matrix of likelihoods of seeing observed state given each hidden state and time step
       in_transProbs - (m_nStates x m_nStates) transition matrix
@@ -730,7 +728,7 @@ namespace hiddini
       in_transProbs - (m_nStates x m_nStates) transition matrix
       in_initProbs - (m_nStates x 1) initial state distribution
       */
-      //Step 1: Initialisation
+      //Step 1: Initialisation.
       //First initialise the Viterbi algorithm
       ProbMatrix obsLogLikelihoods = in_obsLikelihoods.array().log();
       obsLogLikelihoods = (obsLogLikelihoods.array() < s_logLowerLimit).select(s_logLowerLimit, obsLogLikelihoods);
